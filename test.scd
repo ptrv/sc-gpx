@@ -6,18 +6,19 @@
 */
 
 (
-var gpx = GPXFile.new.parse(Document.current.dir ++ "/test.gpx");
+g = GPXFile.new.parse(Document.current.dir ++ "/test.gpx");
 
-gpx.getTrackCount.do { |i|
-    gpx.getTrack(i).do { |seg|
+g.tracks.do { |trk|
+    trk.do { |seg|
         seg.do { |pt|
-            (""++pt.lat++" "++pt.lon).postln;
-            // (""++pt.mercX++" "++pt.mercY).postln;
+            (pt.lat.asString++" "++pt.lon.asString).postln;
+            // (pt.mercX.asString++" "++pt.mercY.asString).postln;
         };
     };
 };
-gpx.getWayPointCount.do { |i|
-    var wpt = gpx.getWayPoint(i);
-    (""++wpt.lat++" "++wpt.lon++" "++wpt.name++" "++wpt.type).postln;
+g.wayPoints.do { |wpt|
+    (wpt.lat.asString++" "++wpt.lon.asString++" "++wpt.name++" "++wpt.type).postln;
 };
+// g.show(800, 800);
+g.show;
 )

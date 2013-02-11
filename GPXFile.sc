@@ -175,6 +175,8 @@ GPXFile {
 
     var <domDocument, <domRoot;
 
+    var gpxFilePath;
+
     *new {
         ^super.new.init;
     }
@@ -201,6 +203,7 @@ GPXFile {
                 this.addWayPoint(GPXWayPoint.newFromXml(node));
             });
         });
+        gpxFilePath = gpxPath;
     }
 
     addTrack { |trk|
@@ -235,8 +238,90 @@ GPXFile {
         ^wayPoints.size;
     }
 
-    draw {
-        "not implemented yet!";
+    show { arg winWidth=500, winHeight=500;
+        var window, gpxView, points, pointsScreen, which;
+        var viewW, viewH, mousepoint, mousedist;
+        var minX, maxX, minY, maxY;
+
+        points = List.new;
+        pointsScreen = List.new;
+
+        tracks.do { |trk|
+            trk.do { |seg|
+                seg.do { |trkpt|
+                    points.add(trkpt);
+                };
+            };
+        };
+        minX = 10000000000.0;
+        maxX = -10000000000.0;
+        minY = 10000000000.0;
+        maxY = -10000000000.0;
+        points.do { |pt|
+            if(pt.mercX < minX, {minX = pt.mercX});
+            if(pt.mercX > maxX, {maxX = pt.mercX});
+            if(pt.mercY < minY, {minY = pt.mercY});
+            if(pt.mercY > maxY, {maxY = pt.mercY});
+        };
+
+        window = Window("GPX file: "++gpxFilePath, Rect(128, 64, winWidth, winHeight));
+        gpxView = UserView(window,window.view.bounds.insetBy(10,10));
+        viewW = gpxView.bounds.width;
+        viewH = gpxView.bounds.height;
+
+        points.do { |pt|
+            var x = pt.mercX;
+            var y = pt.mercY;
+
+            x = (x - minX) / (maxX - minX);
+            y = (y - minY) / (maxY - minY);
+            pointsScreen.add(Rect.aboutPoint(Point(x * viewW, viewH - (y * viewH)), 2, 2));
+        };
+
+        gpxView.drawFunc_({ |me|
+            Pen.fillColor = Color.grey(0.1);
+            Pen.fillRect(me.bounds.moveTo(0,0));
+            Pen.width = 1;
+            pointsScreen.do { arg c, i;
+                Pen.fillColor = Color.white;
+                Pen.fillOval(c);
+            };
+            Pen.strokeColor = Color.black;
+            if(which.notNil) {
+                var gpxText;
+                Pen.width = 2;
+                Pen.strokeColor = Color.red;
+                Pen.strokeOval(pointsScreen[which]);
+                Pen.fillColor = Color.white;
+                gpxText = points[which].lat.asString++", "++points[which].lon.asString;
+                Pen.stringAtPoint(
+                    gpxText, Point(
+                        pointsScreen[which].origin.x,
+                        pointsScreen[which].origin.y));
+
+            };
+
+            Pen.stroke;
+        });
+        gpxView.mouseDownAction_({|v,x,y|
+            mousepoint = Point(x,y);
+            which = nil;
+            which = pointsScreen.detectIndex { arg c, i;  c.containsPoint(mousepoint) };
+            if(which.notNil) {
+                mousedist = mousepoint - (pointsScreen[which].origin);
+                v.doAction;
+            };
+        });
+        gpxView.mouseUpAction_({|v,x,y|
+            which = nil;
+            v.refresh;
+        });
+        gpxView.action_({
+            [which, points[which].lat, points[which].lon].postln;
+            gpxView.refresh;
+        });
+
+        window.front;
     }
 }
 
