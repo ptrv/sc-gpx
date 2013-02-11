@@ -196,46 +196,13 @@ GPXFile {
 
         root.getChildNodes.do({ |node|
             if(node.getTagName == "trk",{
-                // this.addTrack(GPXTrack.newFromXml(node));
                 tracks.add(GPXTrack.newFromXml(node));
             });
             if(node.getTagName == "wpt", {
-                this.addWayPoint(GPXWayPoint.newFromXml(node));
+                wayPoints.add(GPXWayPoint.newFromXml(node));
             });
         });
         gpxFilePath = gpxPath;
-    }
-
-    addTrack { |trk|
-        tracks.add(trk);
-    }
-
-    removeTrack { |trk|
-        tracks.remove(trk);
-    }
-
-    getTrack { |trkIdx|
-        ^tracks.at(trkIdx);
-    }
-
-    getTrackCount {
-        ^tracks.size;
-    }
-
-    addWayPoint { |wpt|
-        wayPoints.add(wpt);
-    }
-
-    removeWayPoint{ |wpt|
-        wayPoints.remove(wpt);
-    }
-
-    getWayPoint{ |wptIdx|
-        ^wayPoints.at(wptIdx);
-    }
-
-    getWayPointCount {
-        ^wayPoints.size;
     }
 
     show { arg winWidth=500, winHeight=500;
