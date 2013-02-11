@@ -263,3 +263,61 @@ GPXFile {
         "not implemented yet!";
     }
 }
+
++ Date {
+    *newFromRawSeconds { arg rawSeconds;
+        var vYear, vMonth, vDay, vHour, vMin, vSec, vWDay;
+        var dayclock, dayno, yearr = 1970;
+        var leapyear, yearsize, ytab;
+
+        leapyear = {|val|
+            if (val % 400 == 0, {
+                True;
+            },{
+                if(val % 100 == 0, {
+                    False;
+                },{
+                    if(val % 4 == 0, {
+                        True;
+                    },{
+                        False;
+                    });
+                });
+            });
+        };
+        yearsize = {|val|
+            if(leapyear.value(val) == True, {366},{365});
+        };
+
+        ytab = {|val|
+            if(leapyear.value(val) == True, {
+                [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            },{
+                [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            });
+        };
+
+        dayclock = rawSeconds % 86400; //secs day
+        dayno = (rawSeconds / 86400).asInteger;
+
+        vSec = dayclock % 60;
+        vMin = ((dayclock % 3600) / 60).asInteger;
+        vHour = dayclock / 3600;
+        vWDay = (dayno + 4) % 7;
+        while({dayno >= yearsize.value(yearr)}, {
+            dayno = dayno - yearsize.value(yearr);
+            yearr = yearr + 1;
+        });
+
+        vYear = yearr;
+        vMonth = 0;
+        while({dayno >= ytab.value(yearr).at(vMonth)}, {
+            dayno = dayno - ytab.value(yearr).at(vMonth);
+            vMonth = vMonth + 1;
+        });
+
+        vDay = (dayno + 1).asInteger;
+
+        ^Date(vYear, vMonth, vDay, vHour, vMin, vSec, vWDay, rawSeconds);
+    }
+}
