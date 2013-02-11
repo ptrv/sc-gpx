@@ -76,6 +76,8 @@ GPXPoint {
             {24},{
                 timeStrArray = time.findRegexp(msdateRegex);
                 useDate = True;
+            },{
+                timeDate = Date.newFromRawSeconds(time.asInt);
             });
         if(useDate == True, {
             timeDate = Date.new(
@@ -202,8 +204,6 @@ GPXFile {
     }
 
     init {
-        // var tarcks = List.new;
-        // var wayPoints = List.new;
     }
 
     parse { |gpxPath|
