@@ -67,24 +67,27 @@ GPXPoint {
 
     init {
         var timeStrArray;
-        case
-        {time.size == 20}
-        {
-            timeStrArray = time.findRegexp(dateRegex);
-        }
-        {time.size == 24}
-        {
-            timeStrArray = time.findRegexp(msdateRegex);
-        };
-        timeDate = Date.new(
-            timeStrArray[1][1].asInteger,
-            timeStrArray[2][1].asInteger,
-            timeStrArray[3][1].asInteger,
-            timeStrArray[4][1].asInteger,
-            timeStrArray[5][1].asInteger,
-            timeStrArray[6][1].asInteger,
-            0, 0
-        );
+        var useDate=False;
+        switch (time.size,
+            {20},{
+                timeStrArray = time.findRegexp(dateRegex);
+                useDate = True;
+            },
+            {24},{
+                timeStrArray = time.findRegexp(msdateRegex);
+                useDate = True;
+            });
+        if(useDate == True, {
+            timeDate = Date.new(
+                timeStrArray[1][1].asInteger,
+                timeStrArray[2][1].asInteger,
+                timeStrArray[3][1].asInteger,
+                timeStrArray[4][1].asInteger,
+                timeStrArray[5][1].asInteger,
+                timeStrArray[6][1].asInteger,
+                0, 0
+            );
+        });
         this.mercX = Mercator.lon2x(this.lon);
         this.mercY = Mercator.lat2y(this.lat);
     }
@@ -167,10 +170,23 @@ GPXWayPoint {
     }
 
     *newFromXml { |xmlTrkpt|
+        var vLat, vLon, vName="", vType="";
 
+        vLat = xmlTrkpt.getAttribute("lat").asFloat;
+        vLon = xmlTrkpt.getAttribute("lon").asFloat;
+
+        xmlTrkpt.getChildNodes.do { |node|
+            case {node.getTagName == "name"}{
+                vName = node.getText;
+            }
+            {node.getTagName == "type"}{
+                vType = node.getText;
+            }
+        };
+        ^GPXWayPoint.new(vLat, vLon, vName, vType);
     }
-    init {
 
+    init {
     }
 }
 
