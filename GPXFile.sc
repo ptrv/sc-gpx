@@ -264,7 +264,7 @@ GPXFile {
                 Pen.stringAtPoint(
                     gpxText, Point(
                         pointsScreen[which].origin.x,
-                        pointsScreen[which].origin.y));
+                        pointsScreen[which].origin.y-15));
 
             };
 
