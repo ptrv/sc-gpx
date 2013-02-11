@@ -90,18 +90,18 @@ GPXPoint {
                 0, 0
             );
         });
-        this.mercX = Mercator.lon2x(this.lon);
-        this.mercY = Mercator.lat2y(this.lat);
+        mercX = Mercator.lon2x(lon);
+        mercY = Mercator.lat2y(lat);
     }
 
-    lat_ { |val|
-        this.lat = val;
-        this.mercY = Mercator.lat2y(val);
+    lat_ { arg val;
+        lat = val;
+        mercY = Mercator.lat2y(val);
     }
 
-    lon_ { |val|
-        this.lon = val;
-        this.mercX = Mercator.lon2x(val);
+    lon_ { arg val;
+        lon = val;
+        mercX = Mercator.lon2x(val);
     }
 }
 
@@ -122,18 +122,6 @@ GPXTrack : List {
         };
         ^GPXTrack.newUsing(tmpTrack).name_(tmpName);
     }
-
-    addTrackSeg { |trkseg|
-        this.add(trkseg);
-    }
-
-    removeTrackSeg { |trkseg|
-        this.remove(trkseg);
-    }
-
-    getTrackSeg { |trkSegIdx|
-        ^this.at(trkSegIdx);
-    }
 }
 
 GPXTrackSeg : List {
@@ -146,18 +134,6 @@ GPXTrackSeg : List {
             });
         };
         ^GPXTrackSeg.newUsing(tmpTrkSeg);
-    }
-
-    addPoint { |trkpt|
-        this.add(trkpt);
-    }
-
-    removePoint { |trkpt|
-        this.remove(trkpt);
-    }
-
-    getPoint { |trkptIdx|
-        ^this.at(trkptIdx);
     }
 }
 
@@ -228,35 +204,35 @@ GPXFile {
     }
 
     addTrack { |trk|
-        this.tracks.add(trk);
+        tracks.add(trk);
     }
 
     removeTrack { |trk|
-        this.tracks.remove(trk);
+        tracks.remove(trk);
     }
 
     getTrack { |trkIdx|
-        ^this.tracks.at(trkIdx);
+        ^tracks.at(trkIdx);
     }
 
     getTrackCount {
-        ^this.tracks.size;
+        ^tracks.size;
     }
 
     addWayPoint { |wpt|
-        this.wayPoints.add(wpt);
+        wayPoints.add(wpt);
     }
 
     removeWayPoint{ |wpt|
-        this.wayPoints.remove(wpt);
+        wayPoints.remove(wpt);
     }
 
     getWayPoint{ |wptIdx|
-        ^this.wayPoints.at(wptIdx);
+        ^wayPoints.at(wptIdx);
     }
 
     getWayPointCount {
-        ^this.wayPoints.size;
+        ^wayPoints.size;
     }
 
     draw {
