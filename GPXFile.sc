@@ -16,7 +16,7 @@ Mercator {
 
     *lat2y { arg lat;
         var temp, es, eccent, phi, sinphi;
-        var con, com, ts, y;
+        var con, com, ts;
         if(lat > 89.5, {
             lat = 89.5;
         });
@@ -32,8 +32,7 @@ Mercator {
         com = 0.5 * eccent;
         con = pow(((1.0 - con) / (1.0 + con)), com);
         ts = ((0.5 * ((pi*0.5) - phi)).tan)/con;
-        y = 0 - r_major * ts.log;
-        ^y;
+        ^(0 - r_major * ts.log);
     }
 }
 
@@ -210,6 +209,9 @@ GPXFile {
     normalizePoints { arg pts;
         var points = List[];
         var minX, maxX, minY, maxY;
+        var minX2, maxX2, minY2, maxY2;
+        var deltaX, deltaY;
+
         minX = 10000000000.0;
         maxX = -10000000000.0;
         minY = 10000000000.0;
@@ -220,11 +222,35 @@ GPXFile {
             if(pt.mercY < minY, {minY = pt.mercY});
             if(pt.mercY > maxY, {maxY = pt.mercY});
         };
+        // ("min/max x: "++minX++"/"++maxX++" y: "++minY++"/"++maxY).postln;
+
+        deltaX = maxX - minX;
+        deltaY = maxY - minY;
+        if(deltaX < deltaY, {
+            minX2 = minX - (deltaY - deltaX)/2.0;
+            maxX2 = maxX + (deltaY - deltaX)/2.0;
+            minY2 = minY;
+            maxY2 = maxY;
+        },{
+            if(deltaX > deltaY, {
+                minX2 = minX;
+                maxX2 = maxX;
+                minY2 = minY - ((deltaX - deltaY)/2.0);
+                maxY2 = maxY + ((deltaX - deltaY)/2.0);
+            },{
+                minX2 = minX;
+                maxX2 = maxX;
+                minY2 = minY;
+                maxY2 = maxY;
+            });
+        });
+        // ("min/max x: "++minX2++"/"++maxX2++" y: "++minY2++"/"++maxY2).postln;
+
         pts.do { |pt|
             var x = pt.mercX;
             var y = pt.mercY;
-            x = (x - minX) / (maxX - minX);
-            y = (y - minY) / (maxY - minY);
+            x = (x - minX2) / (maxX2 - minX2);
+            y = (y - minY2) / (maxY2 - minY2);
             points.add(Point(x, y));
         };
         ^points;
