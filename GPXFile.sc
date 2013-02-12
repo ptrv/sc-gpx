@@ -203,16 +203,36 @@ GPXFile {
             });
         });
         gpxFilePath = gpxPath;
+        domDocument = document;
+        domRoot = root;
     }
 
-    show { arg winWidth=500, winHeight=500;
-        var window, gpxView, points, pointsScreen, which;
-        var viewW, viewH, mousepoint, mousedist;
+    normalizePoints { arg pts;
+        var points = List[];
         var minX, maxX, minY, maxY;
+        minX = 10000000000.0;
+        maxX = -10000000000.0;
+        minY = 10000000000.0;
+        maxY = -10000000000.0;
+        pts.do { |pt|
+            if(pt.mercX < minX, {minX = pt.mercX});
+            if(pt.mercX > maxX, {maxX = pt.mercX});
+            if(pt.mercY < minY, {minY = pt.mercY});
+            if(pt.mercY > maxY, {maxY = pt.mercY});
+        };
+        pts.do { |pt|
+            var x = pt.mercX;
+            var y = pt.mercY;
 
-        points = List.new;
-        pointsScreen = List.new;
+            x = (x - minX) / (maxX - minX);
+            y = (y - minY) / (maxY - minY);
+            points.add(Point(x, y));
+        };
+        ^points;
+    }
 
+    getAllPoints {
+        var points = List[];
         tracks.do { |trk|
             trk.do { |seg|
                 seg.do { |trkpt|
@@ -220,29 +240,27 @@ GPXFile {
                 };
             };
         };
-        minX = 10000000000.0;
-        maxX = -10000000000.0;
-        minY = 10000000000.0;
-        maxY = -10000000000.0;
-        points.do { |pt|
-            if(pt.mercX < minX, {minX = pt.mercX});
-            if(pt.mercX > maxX, {maxX = pt.mercX});
-            if(pt.mercY < minY, {minY = pt.mercY});
-            if(pt.mercY > maxY, {maxY = pt.mercY});
-        };
+        ^points;
+    }
+
+    show { arg winWidth=500, winHeight=500;
+        var window, gpxView, points, pointsN, pointsScreen, which;
+        var viewW, viewH, mousepoint, mousedist;
+
+        // points = List.new;
+        pointsScreen = List[];
+
+        points = this.getAllPoints;
+
+        pointsN = this.normalizePoints(points);
 
         window = Window("GPX file: "++gpxFilePath, Rect(128, 64, winWidth, winHeight));
         gpxView = UserView(window,window.view.bounds.insetBy(10,10));
         viewW = gpxView.bounds.width;
         viewH = gpxView.bounds.height;
 
-        points.do { |pt|
-            var x = pt.mercX;
-            var y = pt.mercY;
-
-            x = (x - minX) / (maxX - minX);
-            y = (y - minY) / (maxY - minY);
-            pointsScreen.add(Rect.aboutPoint(Point(x * viewW, viewH - (y * viewH)), 2, 2));
+        pointsN.do { |pt|
+            pointsScreen.add(Rect.aboutPoint(Point(pt.x * viewW, viewH - (pt.y * viewH)), 2, 2));
         };
 
         gpxView.drawFunc_({ |me|
@@ -255,14 +273,13 @@ GPXFile {
             };
             Pen.strokeColor = Color.black;
             if(which.notNil) {
-                var gpxText;
                 Pen.width = 2;
                 Pen.strokeColor = Color.red;
                 Pen.strokeOval(pointsScreen[which]);
                 Pen.fillColor = Color.white;
-                gpxText = points[which].lat.asString++", "++points[which].lon.asString;
                 Pen.stringAtPoint(
-                    gpxText, Point(
+                    points[which].lat.asString++", "++points[which].lon.asString,
+                    Point(
                         pointsScreen[which].origin.x,
                         pointsScreen[which].origin.y-15));
 
