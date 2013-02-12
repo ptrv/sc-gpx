@@ -223,7 +223,6 @@ GPXFile {
         pts.do { |pt|
             var x = pt.mercX;
             var y = pt.mercY;
-
             x = (x - minX) / (maxX - minX);
             y = (y - minY) / (maxY - minY);
             points.add(Point(x, y));
@@ -247,9 +246,6 @@ GPXFile {
         var window, gpxView, points, pointsN, pointsScreen, which;
         var viewW, viewH, mousepoint, mousedist;
 
-        // points = List.new;
-        pointsScreen = List[];
-
         points = this.getAllPoints;
 
         pointsN = this.normalizePoints(points);
@@ -259,9 +255,9 @@ GPXFile {
         viewW = gpxView.bounds.width;
         viewH = gpxView.bounds.height;
 
-        pointsN.do { |pt|
-            pointsScreen.add(Rect.aboutPoint(Point(pt.x * viewW, viewH - (pt.y * viewH)), 2, 2));
-        };
+        pointsScreen = pointsN.collect({|pt|
+            Rect.aboutPoint(Point(pt.x * viewW, viewH - (pt.y * viewH)), 2, 2)
+        });
 
         gpxView.drawFunc_({ |me|
             Pen.fillColor = Color.grey(0.1);
@@ -282,9 +278,7 @@ GPXFile {
                     Point(
                         pointsScreen[which].origin.x,
                         pointsScreen[which].origin.y-15));
-
             };
-
             Pen.stroke;
         });
         gpxView.mouseDownAction_({|v,x,y|
