@@ -6,7 +6,7 @@
 */
 
 (
-g = GPXFile.new.parse(Document.current.dir ++ "/test.gpx");
+g = GPXFile.new.parse(thisProcess.nowExecutingPath.dirname ++ "/test.gpx");
 
 g.tracks.do { |trk|
     trk.do { |seg|
