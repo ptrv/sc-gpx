@@ -213,7 +213,6 @@ GPXFile {
     normalizePoints { arg pts;
         var points = List[];
         var minX, maxX, minY, maxY;
-        var minX2, maxX2, minY2, maxY2;
         var deltaX, deltaY;
 
         minX = 10000000000.0;
@@ -231,21 +230,12 @@ GPXFile {
         deltaX = maxX - minX;
         deltaY = maxY - minY;
         if(deltaX < deltaY, {
-            minX2 = minX - (deltaY - deltaX)/2.0;
-            maxX2 = maxX + (deltaY - deltaX)/2.0;
-            minY2 = minY;
-            maxY2 = maxY;
+            minX = minX - (deltaY - deltaX)/2.0;
+            maxX = maxX + (deltaY - deltaX)/2.0;
         },{
             if(deltaX > deltaY, {
-                minX2 = minX;
-                maxX2 = maxX;
-                minY2 = minY - ((deltaX - deltaY)/2.0);
-                maxY2 = maxY + ((deltaX - deltaY)/2.0);
-            },{
-                minX2 = minX;
-                maxX2 = maxX;
-                minY2 = minY;
-                maxY2 = maxY;
+                minY = minY - ((deltaX - deltaY)/2.0);
+                maxY = maxY + ((deltaX - deltaY)/2.0);
             });
         });
         // ("min/max x: "++minX2++"/"++maxX2++" y: "++minY2++"/"++maxY2).postln;
@@ -253,8 +243,8 @@ GPXFile {
 		pts.do { arg pt;
             var x = pt.mercX;
             var y = pt.mercY;
-            x = (x - minX2) / (maxX2 - minX2);
-            y = (y - minY2) / (maxY2 - minY2);
+            x = (x - minX) / (maxX - minX);
+            y = (y - minY) / (maxY - minY);
             points.add(Point(x, y));
         };
         ^points;
