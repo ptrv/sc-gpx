@@ -6,7 +6,7 @@
 */
 
 (
-g = GPXFile.new.parse(thisProcess.nowExecutingPath.dirname ++ "/test.gpx");
+g = GPXFile.new.read(thisProcess.nowExecutingPath.dirname ++ "/test.gpx");
 
 g.tracks.do { |trk|
     trk.do { |seg|
@@ -19,6 +19,7 @@ g.tracks.do { |trk|
 g.wayPoints.do { |wpt|
     (wpt.lat.asString++" "++wpt.lon.asString++" "++wpt.name++" "++wpt.type).postln;
 };
+
 // g.show(800, 800);
 g.show;
 )

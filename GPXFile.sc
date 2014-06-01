@@ -44,16 +44,16 @@ GPXPoint {
     var dateRegex = "([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})Z";
     var msdateRegex = "([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2}).([0-9]{3})Z";
 
-    *new { |lat=0.0, lon=0.0, ele=0.0, time=""|
+    *new { arg lat=0.0, lon=0.0, ele=0.0, time="";
         ^super.newCopyArgs(lat, lon, ele, time).init;
     }
 
-    *newFromXml { |xmlTrkpt|
+	*newFromXml { arg xmlTrkpt;
         var vLat, vLon, vEle, vTime;
         vLat = xmlTrkpt.getAttribute("lat");
         vLon = xmlTrkpt.getAttribute("lon");
         // (vLat ++ " " ++ vLon).postln;
-        xmlTrkpt.getChildNodes.do { |node|
+        xmlTrkpt.getChildNodes.do { arg node;
             if(node.getTagName == "ele", {
                 vEle = node.getText;
             });
@@ -66,19 +66,19 @@ GPXPoint {
 
     init {
         var timeStrArray;
-        var useDate=False;
+        var useDate = false;
         switch (time.size,
             {20},{
                 timeStrArray = time.findRegexp(dateRegex);
-                useDate = True;
+                useDate = true;
             },
             {24},{
                 timeStrArray = time.findRegexp(msdateRegex);
-                useDate = True;
+                useDate = true;
             },{
                 timeDate = Date.newFromRawSeconds(time.asInt);
             });
-        if(useDate == True, {
+        if(useDate == true, {
             timeDate = Date.new(
                 timeStrArray[1][1].asInteger,
                 timeStrArray[2][1].asInteger,
@@ -108,10 +108,10 @@ GPXTrack : List {
 
     var <>name;
 
-    *newFromXml { |xmltrk|
+    *newFromXml { arg xmltrk;
         var tmpTrack = List.new;
         var tmpName = "";
-        xmltrk.getChildNodes.do { |node|
+        xmltrk.getChildNodes.do { arg node;
             if(node.getTagName == "name", {
                 tmpName = node.getText;
             });
@@ -125,9 +125,9 @@ GPXTrack : List {
 
 GPXTrackSeg : List {
 
-    *newFromXml { |xmlTrkSeg|
+    *newFromXml { arg xmlTrkSeg;
         var tmpTrkSeg = List.new;
-        xmlTrkSeg.getChildNodes.do { |node|
+        xmlTrkSeg.getChildNodes.do { arg node;
             if(node.getTagName == "trkpt", {
                 tmpTrkSeg.add(GPXPoint.newFromXml(node))
             });
@@ -142,17 +142,17 @@ GPXWayPoint {
     var <>name;
     var <>type;
 
-    *new {|lat=0.0, lon=0.0, name="", type=""|
+	*new { arg lat=0.0, lon=0.0, name="", type="";
         ^super.newCopyArgs(lat, lon, name, type).init;
     }
 
-    *newFromXml { |xmlTrkpt|
+	*newFromXml { arg xmlTrkpt;
         var vLat, vLon, vName="", vType="";
 
         vLat = xmlTrkpt.getAttribute("lat").asFloat;
         vLon = xmlTrkpt.getAttribute("lon").asFloat;
 
-        xmlTrkpt.getChildNodes.do { |node|
+        xmlTrkpt.getChildNodes.do { arg node;
             case {node.getTagName == "name"}{
                 vName = node.getText;
             }
@@ -183,17 +183,22 @@ GPXFile {
     init {
     }
 
-    parse { |gpxPath|
+	read { arg gpxPath;
+        var s = String.readNew(File(gpxPath, "r"));
+		gpxFilePath = gpxPath;
+		this.parse(s);
+	}
+
+    parse { arg gpxXml;
         var document, root;
         tracks = List.new;
         wayPoints = List.new;
 
-        document = DOMDocument.new;
-        document.read(File(gpxPath, "r"));
+        document = DOMDocument.new.parseXML(gpxXml);
 
         root = document.getDocumentElement;
 
-        root.getChildNodes.do({ |node|
+        root.getChildNodes.do({ arg node;
             if(node.getTagName == "trk",{
                 tracks.add(GPXTrack.newFromXml(node));
             });
@@ -201,7 +206,6 @@ GPXFile {
                 wayPoints.add(GPXWayPoint.newFromXml(node));
             });
         });
-        gpxFilePath = gpxPath;
         domDocument = document;
         domRoot = root;
     }
@@ -216,7 +220,7 @@ GPXFile {
         maxX = -10000000000.0;
         minY = 10000000000.0;
         maxY = -10000000000.0;
-        pts.do { |pt|
+        pts.do { arg pt;
             if(pt.mercX < minX, {minX = pt.mercX});
             if(pt.mercX > maxX, {maxX = pt.mercX});
             if(pt.mercY < minY, {minY = pt.mercY});
@@ -246,7 +250,7 @@ GPXFile {
         });
         // ("min/max x: "++minX2++"/"++maxX2++" y: "++minY2++"/"++maxY2).postln;
 
-        pts.do { |pt|
+		pts.do { arg pt;
             var x = pt.mercX;
             var y = pt.mercY;
             x = (x - minX2) / (maxX2 - minX2);
@@ -258,11 +262,9 @@ GPXFile {
 
     getAllPoints {
         var points = List[];
-        tracks.do { |trk|
-            trk.do { |seg|
-                seg.do { |trkpt|
-                    points.add(trkpt);
-                };
+        tracks.do { arg trk;
+            trk.do { arg seg;
+				points = points ++ seg;
             };
         };
         ^points;
@@ -281,11 +283,11 @@ GPXFile {
         viewW = gpxView.bounds.width;
         viewH = gpxView.bounds.height;
 
-        pointsScreen = pointsN.collect({|pt|
+        pointsScreen = pointsN.collect({ arg pt;
             Rect.aboutPoint(Point(pt.x * viewW, viewH - (pt.y * viewH)), 2, 2)
         });
 
-        gpxView.drawFunc_({ |me|
+		gpxView.drawFunc_({ arg me;
             Pen.fillColor = Color.grey(0.1);
             Pen.fillRect(me.bounds.moveTo(0,0));
             Pen.width = 1;
@@ -307,7 +309,7 @@ GPXFile {
             };
             Pen.stroke;
         });
-        gpxView.mouseDownAction_({|v,x,y|
+        gpxView.mouseDownAction_({ arg v, x, y;
             mousepoint = Point(x,y);
             which = nil;
             which = pointsScreen.detectIndex { arg c, i;  c.containsPoint(mousepoint) };
@@ -316,7 +318,7 @@ GPXFile {
                 v.doAction;
             };
         });
-        gpxView.mouseUpAction_({|v,x,y|
+        gpxView.mouseUpAction_({ arg v, x, y;
             which = nil;
             v.refresh;
         });
@@ -335,27 +337,27 @@ GPXFile {
         var dayclock, dayno, yearr = 1970;
         var leapyear, yearsize, ytab;
 
-        leapyear = {|val|
+        leapyear = { arg val;
             if (val % 400 == 0, {
-                True;
+                true;
             },{
                 if(val % 100 == 0, {
-                    False;
+                    false;
                 },{
                     if(val % 4 == 0, {
-                        True;
+                        true;
                     },{
-                        False;
+                        false;
                     });
                 });
             });
         };
-        yearsize = {|val|
-            if(leapyear.value(val) == True, {366},{365});
+        yearsize = { arg val;
+            if(leapyear.value(val) == true, {366},{365});
         };
 
-        ytab = {|val|
-            if(leapyear.value(val) == True, {
+        ytab = { arg val;
+            if(leapyear.value(val) == true, {
                 [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
             },{
                 [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
